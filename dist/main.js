@@ -10,7 +10,7 @@ const transform_interceptor_1 = require("./interceptors/transform.interceptor");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.enableCors({
-        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+        origin: process.env.FRONTEND_URL || 'http://localhost:3000' || "https://library-plum-one.vercel.app",
         credentials: true,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
