@@ -1,0 +1,63 @@
+import { UsersService } from './users.service';
+import { CreateUserDto, UpdateUserDto, QueryUserDto } from './dto/user.dto';
+import { UserRole } from '../../schemas/user.schema';
+export declare class UsersController {
+    private readonly usersService;
+    constructor(usersService: UsersService);
+    findAll(query: QueryUserDto): Promise<{
+        data: (import("mongoose").Document<unknown, {}, import("../../schemas/user.schema").UserDocument> & import("../../schemas/user.schema").User & import("mongoose").Document<any, any, any> & {
+            _id: import("mongoose").Types.ObjectId;
+        })[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+    }>;
+    getDashboardStats(): Promise<{
+        data: {
+            total: number;
+            admins: number;
+            librarians: number;
+            students: number;
+        };
+    }>;
+    findOne(id: string): Promise<{
+        data: import("mongoose").Document<unknown, {}, import("../../schemas/user.schema").UserDocument> & import("../../schemas/user.schema").User & import("mongoose").Document<any, any, any> & {
+            _id: import("mongoose").Types.ObjectId;
+        };
+    }>;
+    create(dto: CreateUserDto): Promise<{
+        data: {
+            name: string;
+            email: string;
+            role: UserRole;
+            phone: string;
+            membershipId: string;
+            isActive: boolean;
+            _id: any;
+            __v?: any;
+            $locals: Record<string, unknown>;
+            $op: "save" | "validate" | "remove" | null;
+            $where: Record<string, unknown>;
+            baseModelName?: string;
+            collection: import("mongoose").Collection;
+            db: import("mongoose").Connection;
+            errors?: import("mongoose").Error.ValidationError;
+            id?: any;
+            isNew: boolean;
+            schema: import("mongoose").Schema;
+        };
+        message: string;
+    }>;
+    update(id: string, dto: UpdateUserDto): Promise<{
+        data: import("mongoose").Document<unknown, {}, import("../../schemas/user.schema").UserDocument> & import("../../schemas/user.schema").User & import("mongoose").Document<any, any, any> & {
+            _id: import("mongoose").Types.ObjectId;
+        };
+        message: string;
+    }>;
+    remove(id: string): Promise<{
+        message: string;
+    }>;
+}
