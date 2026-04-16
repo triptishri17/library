@@ -3,7 +3,7 @@ import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/library_management';
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://shrivastavtripti5472_db_user:<db_password>@cluster0.h6byxow.mongodb.net/?appName=Cluster0';
 
 async function seed() {
   await mongoose.connect(MONGO_URI);
