@@ -10,12 +10,23 @@ import { TransformInterceptor } from './interceptors/transform.interceptor';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
- app.enableCors({
-  origin: [
-    'http://localhost:3000',
-    'https://library-plum-one.vercel.app',
-    'https://library-x5qw-git-master-triptishri17s-projects.vercel.app',
-  ],
+ const allowedDomains = ['localhost', 'vercel.app'];
+
+app.enableCors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    const isAllowed = allowedDomains.some((domain) =>
+      origin.includes(domain)
+    );
+
+    if (isAllowed) {
+      return callback(null, true);
+    }
+
+    console.log('❌ Blocked by CORS:', origin);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 });
   app.useGlobalPipes(
