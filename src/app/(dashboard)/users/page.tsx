@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { usersService } from '../../../services';
-// import { User } from '../../../../types';
 import { User } from '../../../types';
 
 const roleColors: Record<string, string> = {
