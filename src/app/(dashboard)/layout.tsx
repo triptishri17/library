@@ -1,4 +1,5 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -8,26 +9,32 @@ import { useQuery } from '@tanstack/react-query';
 import { notificationsService } from '../../services';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: 'M3 12l2-2...', roles: ['admin','librarian','student'] },
-  { href: '/books', label: 'Books', icon: 'M12 6.253v13...', roles: ['admin','librarian','student'] },
-  { href: '/users', label: 'Users', icon: 'M12 4.354...', roles: ['admin','librarian'] },
-  { href: '/borrow', label: 'Borrow', icon: 'M8 7h12...', roles: ['admin','librarian','student'] },
-  { href: '/fines', label: 'Fines', icon: 'M12 8c...', roles: ['admin','librarian','student'] },
+  { href: '/dashboard', label: 'Dashboard', roles: ['admin','librarian','student'] },
+  { href: '/books', label: 'Books', roles: ['admin','librarian','student'] },
+  { href: '/users', label: 'Users', roles: ['admin','librarian'] },
+  { href: '/borrow', label: 'Borrow', roles: ['admin','librarian','student'] },
+  { href: '/fines', label: 'Fines', roles: ['admin','librarian','student'] },
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((s) => s.auth);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mounted, setMounted] = useState(false); // ⭐ IMPORTANT
+  const [mounted, setMounted] = useState(false);
 
-  // ✅ FIX: wait for client mount
+  useEffect(() => setMounted(true), []);
+
+  // AUTH REDIRECT
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (mounted && !user) router.replace('/login');
+  }, [mounted, user, router]);
 
   const { data: notifData } = useQuery({
     queryKey: ['notifications-count'],
@@ -36,81 +43,61 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     refetchInterval: 60000,
   });
 
-  const unreadCount = notifData?.data?.meta?.unread || 0;
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    if (mounted && !user) {
-      router.replace('/login');
-    }
-  }, [user, mounted, router]);
-
-  // ❗ VERY IMPORTANT FIX
-  if (!mounted) return null;
-
-  const allowedNav = navItems.filter((n) => user?.role && n.roles.includes(user.role));
+  const allowedNav = navItems.filter((n) =>
+    user?.role ? n.roles.includes(user.role) : false
+  );
 
   const handleLogout = () => {
     dispatch(logout());
     router.replace('/login');
   };
 
-  const NavLink = ({ item }: { item: typeof navItems[0] }) => {
-    const active =
-      pathname === item.href ||
-      (item.href !== '/dashboard' && pathname.startsWith(item.href));
+  const unreadCount = notifData?.data?.meta?.unread || 0;
 
-    return (
-      <Link
-        href={item.href}
-        onClick={() => setSidebarOpen(false)}
-        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-          active
-            ? 'bg-blue-50 text-blue-700'
-            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-        }`}
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={item.icon} />
-        </svg>
-        {item.label}
-      </Link>
-    );
-  };
+  const Sidebar = () => (
+    <div className="flex flex-col h-full p-5">
+      <div className="mb-8 font-bold text-lg">📚 LibraryMS</div>
 
-  const Sidebar = ({ mobile = false }) => (
-    <div className={`flex flex-col h-full ${mobile ? 'p-4' : 'p-5'}`}>
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
-          <span className="text-white font-bold">L</span>
-        </div>
-        <div>
-          <p className="font-bold text-gray-900 text-sm">LibraryMS</p>
-          <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
-        </div>
-      </div>
+      <nav className="flex-1 space-y-2">
+        {allowedNav.map((item) => {
+          const active =
+            pathname === item.href ||
+            pathname.startsWith(item.href + '/');
 
-      <nav className="flex-1 space-y-1">
-        {allowedNav.map((item) => (
-          <NavLink key={item.href} item={item} />
-        ))}
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setSidebarOpen(false)}
+              className={`block px-3 py-2 rounded-lg text-sm ${
+                active
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'hover:bg-gray-100'
+              }`}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
 
-      <div className="border-t pt-4 mt-4">
-        <div className="flex items-center gap-3 px-3 mb-3">
-          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-            {user?.name?.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <p className="text-sm font-medium">{user?.name}</p>
-            <p className="text-xs text-gray-400">{user?.email}</p>
-          </div>
-        </div>
+      <div className="border-t pt-4">
+        <p className="text-sm font-medium">{user?.name}</p>
+        <p className="text-xs text-gray-400 mb-2">{user?.email}</p>
 
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+          className="text-red-600 text-sm"
         >
-          Sign out
+          Logout
         </button>
       </div>
     </div>
@@ -118,22 +105,40 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <aside className="hidden lg:flex flex-col w-60 bg-white border-r">
+
+      {/* DESKTOP SIDEBAR */}
+      <aside className="hidden lg:block w-60 bg-white border-r">
         <Sidebar />
       </aside>
 
-      <div className="flex-1 flex flex-col">
-        <header className="bg-white border-b px-4 h-14 flex items-center justify-between">
-          <button onClick={() => setSidebarOpen(true)}>☰</button>
-
-          <div>{pathname.split('/')[1] || 'Dashboard'}</div>
-
-          <div>
-            🔔 {unreadCount}
+      {/* MOBILE SIDEBAR */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/40 z-50 lg:hidden">
+          <div className="w-64 bg-white h-full">
+            <Sidebar />
           </div>
+        </div>
+      )}
+
+      {/* MAIN */}
+      <div className="flex-1 flex flex-col">
+
+        <header className="h-14 bg-white border-b flex items-center justify-between px-4">
+          <button
+            className="lg:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            ☰
+          </button>
+
+          <div className="capitalize">
+            {pathname.split('/')[1] || 'dashboard'}
+          </div>
+
+          <div>🔔 {unreadCount}</div>
         </header>
 
-        <main className="flex-1 p-4">{children}</main>
+        <main className="p-4 overflow-y-auto">{children}</main>
       </div>
     </div>
   );

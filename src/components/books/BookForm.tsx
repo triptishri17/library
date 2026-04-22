@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { booksService } from '../../services';
+import { booksService, categoriesService } from '../../services';
 
 interface BookFormData {
   title: string;
@@ -30,14 +30,21 @@ export default function BookForm({ bookId }: { bookId?: string }) {
     formState: { errors },
   } = useForm<BookFormData>();
 
-  // ✅ STATIC CATEGORIES
-  const categories = [
-    { _id: '1', name: 'Romance' },
-    { _id: '2', name: 'Motivation' },
-    { _id: '3', name: 'Fiction' },
-    { _id: '4', name: 'Self Help' },
-    { _id: '5', name: 'Education' },
-  ];
+  // ✅ Categories Query
+  const {
+    data: catData,
+    isLoading: catLoading,
+  } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => categoriesService.getAll(),
+  });
+
+  // ✅ SAFE DATA EXTRACTION (handles all API formats)
+  const categories =
+    catData?.data?.data ||
+    catData?.data ||
+    catData ||
+    [];
 
   // ✅ Book Data (Edit mode)
   const { data: bookData } = useQuery({
@@ -46,6 +53,7 @@ export default function BookForm({ bookId }: { bookId?: string }) {
     enabled: isEdit,
   });
 
+  // ✅ Prefill form in edit mode
   useEffect(() => {
     if (bookData?.data?.data) {
       const b = bookData.data.data;
@@ -151,18 +159,26 @@ export default function BookForm({ bookId }: { bookId?: string }) {
               placeholder="ISBN"
             />
 
-            {/* ✅ CATEGORY DROPDOWN (STATIC) */}
+            {/* ✅ FIXED CATEGORY DROPDOWN */}
             <select
               {...register('categoryId', { required: 'Category is required' })}
               className="input-field"
             >
-              <option value="">Select category</option>
+              <option value="">
+                {catLoading ? 'Loading categories...' : 'Select category'}
+              </option>
 
-              {categories.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name}
-                </option>
-              ))}
+              {categories.length > 0 ? (
+                categories.map((c: any) => (
+                  <option key={c._id || c.id} value={c._id || c.id}>
+                    {c.name || c.title}
+                  </option>
+                ))
+              ) : (
+                !catLoading && (
+                  <option disabled></option>
+                )
+              )}
             </select>
 
             {errors.categoryId && (

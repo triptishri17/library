@@ -1,5 +1,14 @@
 'use client';
+
+import { use } from 'react';
 import BookForm from '../../../../../components/books/BookForm';
-export default function EditBookPage({ params }: { params: { id: string } }) {
-  return <BookForm bookId={params.id} />;
+
+export default function EditBookPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+
+  return <BookForm bookId={id} />;
 }

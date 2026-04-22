@@ -49,6 +49,7 @@ function IssueModal({ onClose }: { onClose: () => void }) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Book *</label>
             <select {...register('bookId', { required: 'Select a book' })} className="input-field">
               <option value="">Select available book</option>
+              
               {booksData?.data?.data?.map((b: any) => (
                 <option key={b._id} value={b._id}>{b.title} — {b.author} ({b.availableCopies} left)</option>
               ))}
