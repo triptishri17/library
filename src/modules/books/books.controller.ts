@@ -30,9 +30,13 @@ export class BooksController {
 
   @Get()
   @ApiOperation({ summary: 'Get all books with filters and pagination' })
-  findAll(@Query() query: QueryBookDto) {
+  findAll(@Query() query: QueryBookDto) 
+  {
+    console.log(' RAW QUERY:', JSON.stringify(query));
     return this.booksService.findAll(query);
+    
   }
+
 
   @Get('stats')
   @Roles(UserRole.ADMIN, UserRole.LIBRARIAN)

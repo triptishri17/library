@@ -1,6 +1,9 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+
+import {
+  IsNotEmpty, IsNumber, IsOptional, IsString, Min,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer'; // ← add Transform
 
 export class CreateBookDto {
   @ApiProperty()
@@ -43,10 +46,27 @@ export class CreateBookDto {
 
 export class UpdateBookDto extends PartialType(CreateBookDto) {}
 
+// ✅ THIS IS THE ONLY THING THAT NEEDED TO CHANGE
 export class QueryBookDto {
-  @IsOptional() page?: number;
-  @IsOptional() limit?: number;
-  @IsOptional() search?: string;
-  @IsOptional() categoryId?: string;
-  @IsOptional() available?: string;
+  @IsOptional()
+  @Transform(({ value }) => (value ? Number(value) : undefined))
+  page?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => (value ? Number(value) : undefined))
+  limit?: number;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim() || undefined) // "" → undefined
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim() || undefined) // "" → undefined
+  categoryId?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value?.trim() || undefined) // "" → undefined
+  available?: string;
 }
